@@ -1,0 +1,7 @@
+backend:
+  image: my-dockerhub/timesheet-backend:latest
+  replicas: 3
+
+frontend:
+  image: my-dockerhub/timesheet-frontend:latest
+  replicas: 2

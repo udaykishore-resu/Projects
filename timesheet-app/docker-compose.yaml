@@ -1,0 +1,15 @@
+version: '3.8'
+services:
+  backend:
+    build: ./timesheet-app-be
+    ports:
+      - "8080:8080"
+    environment:
+      - DB_HOST=postgres-db
+
+  frontend:
+    build: ./timesheet-app-fe
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
