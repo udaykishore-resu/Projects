@@ -1,0 +1,832 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Go Test Generator</title>
+    <style>
+        :root {
+            --primary-color: #00a8ff;
+            --secondary-color: #007bff;
+            --dark-color: #2d3436;
+            --light-color: #f5f6fa;
+            --success-color: #05c46b;
+            --border-color: #dcdde1;
+            --card-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            color: var(--dark-color);
+            line-height: 1.6;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+            overflow: hidden;
+        }
+        
+        header {
+            background: linear-gradient(120deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            padding: 25px 30px;
+            text-align: center;
+        }
+        
+        h1 {
+            font-size: 2.2rem;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+        
+        .subtitle {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+        
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0;
+        }
+        
+        @media (max-width: 900px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        .left-panel {
+            background: #f9f9f9;
+            padding: 25px;
+            border-right: 1px solid var(--border-color);
+        }
+        
+        .right-panel {
+            padding: 25px;
+            background: white;
+        }
+        
+        .section {
+            margin-bottom: 25px;
+        }
+        
+        .section-title {
+            font-size: 1.3rem;
+            margin-bottom: 15px;
+            color: var(--secondary-color);
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+        }
+        
+        .section-title i {
+            margin-right: 10px;
+            font-size: 1.2rem;
+        }
+        
+        .form-group {
+            margin-bottom: 18px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #444;
+        }
+        
+        select, input, textarea {
+            width: 100%;
+            padding: 12px 15px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+        
+        select:focus, input:focus, textarea:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(0, 168, 255, 0.2);
+        }
+        
+        textarea {
+            min-height: 200px;
+            font-family: 'Courier New', monospace;
+            resize: vertical;
+            line-height: 1.5;
+        }
+        
+        .test-options {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+            gap: 12px;
+            margin-top: 15px;
+        }
+        
+        .test-option {
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            padding: 18px 12px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            background: white;
+        }
+        
+        .test-option:hover {
+            border-color: var(--primary-color);
+            transform: translateY(-3px);
+            box-shadow: var(--card-shadow);
+        }
+        
+        .test-option.selected {
+            border-color: var(--primary-color);
+            background-color: rgba(0, 168, 255, 0.08);
+        }
+        
+        .test-option h3 {
+            font-size: 1rem;
+            margin-bottom: 8px;
+            color: var(--dark-color);
+        }
+        
+        .test-option p {
+            font-size: 0.85rem;
+            color: #666;
+            line-height: 1.4;
+        }
+        
+        .button-group {
+            display: flex;
+            gap: 12px;
+            margin-top: 20px;
+        }
+        
+        button {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 14px 22px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            flex: 1;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        button:hover {
+            background-color: var(--secondary-color);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 10px rgba(0, 123, 255, 0.3);
+        }
+        
+        button.secondary {
+            background-color: #f1f2f6;
+            color: #444;
+        }
+        
+        button.secondary:hover {
+            background-color: #dfe4ea;
+        }
+        
+        .generated-test {
+            background-color: #272822;
+            color: #f8f8f2;
+            padding: 20px;
+            border-radius: 8px;
+            overflow-x: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 0.95rem;
+            line-height: 1.5;
+            min-height: 350px;
+            white-space: pre-wrap;
+        }
+        
+        .file-browser {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .file-browser input {
+            flex: 1;
+        }
+        
+        .info-text {
+            font-size: 0.9rem;
+            color: #666;
+            margin-top: 6px;
+            font-style: italic;
+        }
+        
+        .icon {
+            margin-right: 8px;
+        }
+        
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: white;
+        }
+        
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 20px;
+            background: var(--success-color);
+            color: white;
+            border-radius: 8px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            transform: translateX(100%);
+            transition: transform 0.3s ease;
+            z-index: 1000;
+        }
+        
+        .notification.show {
+            transform: translateX(0);
+        }
+        
+        .code-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        
+        .copy-btn {
+            background: #57606f;
+            padding: 8px 15px;
+            font-size: 0.9rem;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .copy-btn:hover {
+            background: #747d8c;
+        }
+        
+        .language-badge {
+            background: var(--primary-color);
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="logo">Go Test Generator</div>
+            <h1>Go Test Generator</h1>
+            <p class="subtitle">Generate comprehensive unit tests for your Go functions, REST APIs, GraphQL, and gRPC services</p>
+        </header>
+        
+        <div class="main-content">
+            <div class="left-panel">
+                <div class="section">
+                    <h2 class="section-title"><i class="fas fa-folder-open icon"></i>Browser Go Project</h2>
+                    <div class="form-group">
+                        <label>Select Project Directory</label>
+                        <div class="file-browser">
+                            <input type="text" placeholder="Path to your Go project" id="projectPath">
+                            <button class="secondary" onclick="browseProject()"><i class="fas fa-folder icon"></i>Browse</button>
+                        </div>
+                        <p class="info-text">Select the root directory of your Go project to automatically detect packages and functions</p>
+                    </div>
+                </div>
+                
+                <div class="section">
+                    <h2 class="section-title"><i class="fas fa-cube icon"></i>Select Package</h2>
+                    <div class="form-group">
+                        <label>Choose a package</label>
+                        <select id="packageSelect" onchange="updateFunctions()">
+                            <option value="">-- Select a package --</option>
+                            <option value="main">main</option>
+                            <option value="utils">utils</option>
+                            <option value="models">models</option>
+                            <option value="handlers">handlers</option>
+                            <option value="services">services</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="section">
+                    <h2 class="section-title"><i class="fas fa-code icon"></i>Select Method/Function</h2>
+                    <div class="form-group">
+                        <label>Choose a method</label>
+                        <select id="functionSelect">
+                            <option value="">-- Select a function --</option>
+                            <!-- Will be populated dynamically -->
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="section">
+                    <h2 class="section-title"><i class="fas fa-vial icon"></i>Test Generator</h2>
+                    <div class="test-options">
+                        <div class="test-option" onclick="selectTestType('unit')">
+                            <h3>Unit Test</h3>
+                            <p>Basic unit test with mocks</p>
+                        </div>
+                        <div class="test-option" onclick="selectTestType('integration')">
+                            <h3>Integration Test</h3>
+                            <p>Test with real dependencies</p>
+                        </div>
+                        <div class="test-option" onclick="selectTestType('rest')">
+                            <h3>REST API Test</h3>
+                            <p>HTTP endpoint testing</p>
+                        </div>
+                        <div class="test-option" onclick="selectTestType('grpc')">
+                            <h3>gRPC Test</h3>
+                            <p>gRPC service testing</p>
+                        </div>
+                        <div class="test-option" onclick="selectTestType('graphql')">
+                            <h3>GraphQL Test</h3>
+                            <p>GraphQL resolver testing</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="section">
+                    <h2 class="section-title"><i class="fas fa-pencil-alt icon"></i>Source Code</h2>
+                    <div class="form-group">
+                        <textarea id="sourceCode" placeholder="Paste your Go code here...">package main
+
+import (
+    "fmt"
+    "strings"
+)
+
+// StringManipulator manipulates strings
+type StringManipulator struct{}
+
+// Reverse reverses a string
+func (sm *StringManipulator) Reverse(s string) string {
+    runes := []rune(s)
+    for i, j := 0, len(runes)-1; i < j; i, j = i+1, j-1 {
+        runes[i], runes[j] = runes[j], runes[i]
+    }
+    return string(runes)
+}
+
+// ToUpper converts string to uppercase
+func (sm *StringManipulator) ToUpper(s string) string {
+    return strings.ToUpper(s)
+}
+
+func main() {
+    sm := StringManipulator{}
+    fmt.Println(sm.Reverse("hello"))
+    fmt.Println(sm.ToUpper("hello"))
+}</textarea>
+                    </div>
+                    <div class="button-group">
+                        <button onclick="generateTest()"><i class="fas fa-bolt icon"></i>Generate Test</button>
+                        <button class="secondary" onclick="clearAll()"><i class="fas fa-trash-alt icon"></i>Clear All</button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="right-panel">
+                <div class="section">
+                    <div class="code-header">
+                        <h2 class="section-title"><i class="fas fa-file-code icon"></i>Generated Test</h2>
+                        <span class="language-badge">Go</span>
+                    </div>
+                    <div class="code-header">
+                        <div></div>
+                        <button class="copy-btn" onclick="copyToClipboard()"><i class="fas fa-copy icon"></i>Copy Code</button>
+                    </div>
+                    <div class="generated-test" id="generatedTest">// Generated test will appear here
+// Select a package, function, test type, and click "Generate Test"</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="notification" id="notification">Test code copied to clipboard!</div>
+
+    <script>
+        // Package to function mappings
+        const packageFunctions = {
+            'main': ['main', 'init', 'setupServer', 'configureRoutes'],
+            'utils': ['FormatString', 'ParseDate', 'CalculateSum', 'ValidateInput', 'GenerateID'],
+            'models': ['UserCreate', 'UserFindByID', 'UserUpdate', 'ProductListAll', 'ProductFindByID'],
+            'handlers': ['GetUserHandler', 'CreateUserHandler', 'UpdateProductHandler', 'DeleteProductHandler'],
+            'services': ['UserService', 'ProductService', 'AuthService', 'EmailService']
+        };
+        
+        // Currently selected test type
+        let selectedTestType = '';
+        
+        // Initialize the page
+        function init() {
+            // Add example functions to dropdown
+            updateFunctions();
+            
+            // Set default test type
+            selectTestType('unit');
+        }
+        
+        // Function to simulate browsing for a project
+        function browseProject() {
+            showNotification("Project directory selected. Packages detected.");
+            
+            // Simulate package detection
+            document.getElementById('packageSelect').value = 'utils';
+            updateFunctions();
+        }
+        
+        // Update functions based on selected package
+        function updateFunctions() {
+            const packageSelect = document.getElementById('packageSelect');
+            const functionSelect = document.getElementById('functionSelect');
+            const packageName = packageSelect.value;
+            
+            // Clear existing options
+            functionSelect.innerHTML = '<option value="">-- Select a function --</option>';
+            
+            // Add functions for selected package
+            if (packageName && packageFunctions[packageName]) {
+                packageFunctions[packageName].forEach(func => {
+                    const option = document.createElement('option');
+                    option.value = func;
+                    option.textContent = func;
+                    functionSelect.appendChild(option);
+                });
+            }
+        }
+        
+        // Select test type
+        function selectTestType(type) {
+            selectedTestType = type;
+            
+            // Update UI to show selection
+            document.querySelectorAll('.test-option').forEach(option => {
+                option.classList.remove('selected');
+            });
+            
+            // Find the clicked option and add selected class
+            event.currentTarget.classList.add('selected');
+        }
+        
+        // Generate test based on inputs
+        function generateTest() {
+            const packageName = document.getElementById('packageSelect').value;
+            const functionName = document.getElementById('functionSelect').value;
+            const sourceCode = document.getElementById('sourceCode').value;
+            
+            if (!packageName || !functionName) {
+                showNotification("Please select a package and function");
+                return;
+            }
+            
+            if (!sourceCode) {
+                showNotification("Please provide source code");
+                return;
+            }
+            
+            if (!selectedTestType) {
+                showNotification("Please select a test type");
+                return;
+            }
+            
+            // Generate test based on type
+            let testCode = '';
+            
+            switch(selectedTestType) {
+                case 'unit':
+                    testCode = generateUnitTest(packageName, functionName, sourceCode);
+                    break;
+                case 'integration':
+                    testCode = generateIntegrationTest(packageName, functionName, sourceCode);
+                    break;
+                case 'rest':
+                    testCode = generateRESTTest(packageName, functionName, sourceCode);
+                    break;
+                case 'grpc':
+                    testCode = generateGRPCTest(packageName, functionName, sourceCode);
+                    break;
+                case 'graphql':
+                    testCode = generateGraphQLTest(packageName, functionName, sourceCode);
+                    break;
+            }
+            
+            document.getElementById('generatedTest').textContent = testCode;
+            showNotification("Test generated successfully!");
+        }
+        
+        // Clear all inputs
+        function clearAll() {
+            document.getElementById('packageSelect').value = '';
+            document.getElementById('functionSelect').innerHTML = '<option value="">-- Select a function --</option>';
+            document.getElementById('sourceCode').value = '';
+            document.getElementById('generatedTest').textContent = '// Generated test will appear here\n// Select a package, function, test type, and click "Generate Test"';
+            
+            // Deselect test type
+            selectedTestType = '';
+            document.querySelectorAll('.test-option').forEach(option => {
+                option.classList.remove('selected');
+            });
+            
+            showNotification("All fields cleared");
+        }
+        
+        // Copy generated test to clipboard
+        function copyToClipboard() {
+            const testCode = document.getElementById('generatedTest').textContent;
+            if (!testCode || testCode.startsWith('// Generated test will appear here')) {
+                showNotification("No test code to copy");
+                return;
+            }
+            
+            navigator.clipboard.writeText(testCode)
+                .then(() => {
+                    showNotification("Test code copied to clipboard!");
+                })
+                .catch(err => {
+                    showNotification("Failed to copy text: " + err);
+                });
+        }
+        
+        // Show notification
+        function showNotification(message) {
+            const notification = document.getElementById('notification');
+            notification.textContent = message;
+            notification.classList.add('show');
+            
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 3000);
+        }
+        
+        // Example test generators
+        function generateUnitTest(packageName, functionName, sourceCode) {
+            return `package ${packageName}
+
+import (
+    "testing"
+)
+
+func Test${functionName}(t *testing.T) {
+    tests := []struct {
+        name string
+        input string
+        expected string
+    }{
+        {
+            name: "simple string",
+            input: "hello",
+            expected: "olleh",
+        },
+        {
+            name: "empty string",
+            input: "",
+            expected: "",
+        },
+        {
+            name: "unicode string",
+            input: "héllo",
+            expected: "olléh",
+        },
+    }
+
+    sm := StringManipulator{}
+    
+    for _, tt := range tests {
+        t.Run(tt.name, func(t *testing.T) {
+            result := sm.${functionName}(tt.input)
+            if result != tt.expected {
+                t.Errorf("${functionName}(%q) = %q, want %q", tt.input, result, tt.expected)
+            }
+        })
+    }
+}`;
+        }
+        
+        function generateIntegrationTest(packageName, functionName, sourceCode) {
+            return `package ${packageName}
+
+import (
+    "testing"
+    "os"
+    "context"
+    "database/sql"
+    
+    _ "github.com/lib/pq"
+)
+
+func Test${functionName}_Integration(t *testing.T) {
+    if testing.Short() {
+        t.Skip("Skipping integration test in short mode")
+    }
+    
+    // Setup database connection
+    dsn := os.Getenv("TEST_DB_DSN")
+    if dsn == "" {
+        t.Fatal("TEST_DB_DSN environment variable is required for integration tests")
+    }
+    
+    db, err := sql.Open("postgres", dsn)
+    if err != nil {
+        t.Fatalf("Failed to connect to test database: %v", err)
+    }
+    defer db.Close()
+    
+    // Create a new service instance with real DB
+    service := NewService(db)
+    
+    ctx := context.Background()
+    
+    t.Run("should successfully process valid input", func(t *testing.T) {
+        input := "test input"
+        
+        result, err := service.${functionName}(ctx, input)
+        if err != nil {
+            t.Fatalf("Unexpected error: %v", err)
+        }
+        
+        if result != "expected output" {
+            t.Errorf("Expected 'expected output', got %q", result)
+        }
+    })
+}`;
+        }
+        
+        function generateRESTTest(packageName, functionName, sourceCode) {
+            return `package ${packageName}
+
+import (
+    "testing"
+    "net/http"
+    "net/http/httptest"
+    "encoding/json"
+    "bytes"
+    "io"
+)
+
+func Test${functionName}(t *testing.T) {
+    router := setupRouter()
+    
+    t.Run("should return 200 OK", func(t *testing.T) {
+        w := httptest.NewRecorder()
+        req, _ := http.NewRequest("GET", "/api/test", nil)
+        router.ServeHTTP(w, req)
+        
+        if w.Code != http.StatusOK {
+            t.Errorf("Expected status code %d, got %d", http.StatusOK, w.Code)
+        }
+    })
+    
+    t.Run("should handle POST request", func(t *testing.T) {
+        payload := map[string]interface{}{
+            "name": "test",
+            "value": 123,
+        }
+        body, _ := json.Marshal(payload)
+        
+        w := httptest.NewRecorder()
+        req, _ := http.NewRequest("POST", "/api/create", bytes.NewReader(body))
+        req.Header.Set("Content-Type", "application/json")
+        router.ServeHTTP(w, req)
+        
+        if w.Code != http.StatusCreated {
+            t.Errorf("Expected status code %d, got %d", http.StatusCreated, w.Code)
+        }
+        
+        var response map[string]interface{}
+        body, _ = io.ReadAll(w.Body)
+        json.Unmarshal(body, &response)
+        
+        if response["name"] != "test" {
+            t.Errorf("Expected name to be 'test', got %v", response["name"])
+        }
+    })
+}`;
+        }
+        
+        function generateGRPCTest(packageName, functionName, sourceCode) {
+            return `package ${packageName}
+
+import (
+    "testing"
+    "context"
+    
+    "google.golang.org/grpc"
+    "google.golang.org/grpc/test/bufconn"
+)
+
+func Test${functionName}(t *testing.T) {
+    lis := bufconn.Listen(1024 * 1024)
+    s := grpc.NewServer()
+    RegisterTestServiceServer(s, &server{})
+    go func() {
+        if err := s.Serve(lis); err != nil {
+            t.Fatalf("Server exited with error: %v", err)
+        }
+    }()
+    
+    ctx := context.Background()
+    conn, err := grpc.DialContext(ctx, "bufnet", 
+        grpc.WithContextDialer(func(context.Context, string) (net.Conn, error) {
+            return lis.Dial()
+        }), grpc.WithInsecure())
+    if err != nil {
+        t.Fatalf("Failed to dial bufnet: %v", err)
+    }
+    defer conn.Close()
+    
+    client := NewTestServiceClient(conn)
+    
+    t.Run("should handle gRPC request", func(t *testing.T) {
+        req := &Request{Name: "test"}
+        resp, err := client.${functionName}(ctx, req)
+        
+        if err != nil {
+            t.Fatalf("Unexpected error: %v", err)
+        }
+        
+        if resp.Message != "Hello test" {
+            t.Errorf("Expected 'Hello test', got %q", resp.Message)
+        }
+    })
+}`;
+        }
+        
+        function generateGraphQLTest(packageName, functionName, sourceCode) {
+            return `package ${packageName}
+
+import (
+    "testing"
+    "encoding/json"
+    
+    "github.com/graph-gophers/graphql-go"
+)
+
+func Test${functionName}(t *testing.T) {
+    schema := graphql.MustParseSchema(schemaString, &resolver{})
+    
+    t.Run("should execute query", func(t *testing.T) {
+        query := \`
+            query {
+                getUser(id: "123") {
+                    id
+                    name
+                    email
+                }
+            }
+        \`
+        
+        var result struct {
+            Data struct {
+                User struct {
+                    ID    string \`json:"id"\`
+                    Name  string \`json:"name"\`
+                    Email string \`json:"email"\`
+                } \`json:"getUser"\`
+            } \`json:"data"\`
+        }
+        
+        resp := schema.Exec(ctx, query, "", nil)
+        json.Unmarshal(resp.Data, &result)
+        
+        if result.Data.User.ID != "123" {
+            t.Errorf("Expected ID '123', got %q", result.Data.User.ID)
+        }
+        
+        if result.Data.User.Name != "test user" {
+            t.Errorf("Expected name 'test user', got %q", result.Data.User.Name)
+        }
+    })
+}`;
+        }
+        
+        // Initialize on page load
+        window.onload = init;
+    </script>
+</body>
+</html>
